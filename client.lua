@@ -93,7 +93,7 @@ CreateThread(function()
 
 			-- Reset camera
 			if IsControlJustPressed(0, Config.ResetCamControl) then
-				SetCamRot(Cam, 0.0, 0.0, 0.0, 2)
+				SetCamRot(Cam, pitch, 0.0, yaw, 2)
 				SetCamFov(Cam, StartingFov)
 			end
 

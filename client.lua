@@ -2,9 +2,16 @@ local Cam = nil
 local StartingFov = 0.0
 local ShowHud = true
 local Speed = Config.Speed
+local ClearTasks = false
 
 function EnableFreeCam()
-	FreezeEntityPosition(PlayerPedId(), true)
+	if not IsPedUsingAnyScenario(PlayerPedId()) then
+		TaskStandStill(PlayerPedId(), -1)
+		ClearTasks = true
+	else
+		ClearTasks = false
+	end
+
 	local x, y, z = table.unpack(GetGameplayCamCoord())
 	local pitch, roll, yaw = table.unpack(GetGameplayCamRot(2))
 	local fov = GetGameplayCamFov()
@@ -17,7 +24,10 @@ function EnableFreeCam()
 end
 
 function DisableFreeCam()
-	FreezeEntityPosition(PlayerPedId(), false)
+	if ClearTasks then
+		ClearPedTasks(PlayerPedId(), true, true)
+	end
+
 	RenderScriptCams(false, true, 500, true, true)
 	SetCamActive(Cam, false)
 	DetachCam(Cam)

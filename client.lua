@@ -103,8 +103,8 @@ CreateThread(function()
 
 			-- Reset camera
 			if IsControlJustPressed(0, Config.ResetCamControl) then
-				SetCamRot(Cam, pitch, 0.0, yaw, 2)
-				SetCamFov(Cam, StartingFov)
+				roll = 0.0
+				fov = StartingFov
 			end
 
 			-- Increase movement speed
@@ -119,12 +119,12 @@ CreateThread(function()
 
 			-- Move up
 			if IsControlPressed(0, Config.UpControl) then
-				SetCamCoord(Cam, x, y, z + Speed)
+				z = z + Speed
 			end
 
 			-- Move down
 			if IsControlPressed(0, Config.DownControl) then
-				SetCamCoord(Cam, x, y, z - Speed)
+				z = z - Speed
 			end
 
 			-- Rotate camera using the mouse/analog stick
@@ -132,19 +132,18 @@ CreateThread(function()
 			local axisY = GetDisabledControlNormal(0, 0xD2047988)
 
 			if axisX ~= 0.0 or axisY ~= 0.0 then
-				local newZ = yaw + axisX * -1.0 * Config.SpeedUd * 1.0
-				local newX = math.max(math.min(89.9, pitch + axisY * -1.0 * Config.SpeedLr * 1.0), -89.9)
-				SetCamRot(Cam, newX, roll, newZ, 2)
+				yaw = yaw + axisX * -1.0 * Config.SpeedUd * 1.0
+				pitch = math.max(math.min(89.9, pitch + axisY * -1.0 * Config.SpeedLr * 1.0), -89.9)
 			end
 
 			-- Roll left
 			if IsControlPressed(0, Config.RollLeftControl) then
-				SetCamRot(Cam, pitch, roll - Config.RollSpeed, yaw, 2)
+				roll = roll - Config.RollSpeed
 			end
 
 			-- Roll right
 			if IsControlPressed(0, Config.RollRightControl) then
-				SetCamRot(Cam, pitch, roll + Config.RollSpeed, yaw, 2)
+				roll = roll + Config.RollSpeed
 			end
 
 			-- Determine change in forward/backward movement
@@ -159,33 +158,41 @@ CreateThread(function()
 
 			-- Move forward
 			if IsControlPressed(0, Config.ForwardControl) then
-				SetCamCoord(Cam, x + dx1, y + dy1, z)
+				x = x + dx1
+				y = y + dy1
 			end
 
 			-- Move backward
 			if IsControlPressed(0, Config.BackwardControl) then
-				SetCamCoord(Cam, x - dx1, y - dy1, z)
+				x = x - dx1
+				y = y - dy1
 			end
 
 			-- Move left
 			if IsControlPressed(0, Config.LeftControl) then
-				SetCamCoord(Cam, x + dx2, y + dy2, z)
+				x = x + dx2
+				y = y + dy2
 			end
 
 			-- Move right
 			if IsControlPressed(0, Config.RightControl) then
-				SetCamCoord(Cam, x - dx2, y - dy2, z)
+				x = x - dx2
+				y = y - dy2
 			end
 
 			-- Increase FOV
 			if IsControlPressed(0, Config.IncreaseFovControl) then
-				SetCamFov(Cam, fov + Config.ZoomSpeed)
+				fov = fov + Config.ZoomSpeed
 			end
 
 			-- Decrease FOV
 			if IsControlPressed(0, Config.DecreaseFovControl) then
-				SetCamFov(Cam, fov - Config.ZoomSpeed)
+				fov = fov - Config.ZoomSpeed
 			end
+
+			SetCamCoord(Cam, x, y, z)
+			SetCamRot(Cam, pitch, roll, yaw)
+			SetCamFov(Cam, fov)
 		end
 	end
 end)

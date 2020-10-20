@@ -17,16 +17,16 @@ Config.ToggleHudControl     = 0xDE794E3E -- Q
 Config.ResetCamControl      = 0x4CC0E2FE -- B
 
 -- Maximum movement speed
-Config.MaxSpeed = 10.0
+Config.MaxSpeed = 1.00
 
 -- Minimum movement speed
-Config.MinSpeed = 0.1
+Config.MinSpeed = 0.01
 
 -- How much the speed increases/decreases by when the speed up/down controls are pressed
-Config.SpeedIncrement = 0.1
+Config.SpeedIncrement = 0.01
 
 -- Default movement speed
-Config.Speed = 0.1
+Config.Speed = 0.05
 
 -- Maximum FOV
 Config.MaxFov = 120.0

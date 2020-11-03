@@ -91,9 +91,13 @@ CreateThread(function()
 			if ShowHud then
 				DrawText(string.format('FreeCam Speed: %.2f', Speed), 0.5, 0.90, true)
 				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f', x, y, z, pitch, roll, yaw, fov), 0.01, 0.3, false)
-				DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.95, true)
+				DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD, Backspace - Exit', 0.5, 0.95, true)
 			else
 				HideHudAndRadarThisFrame()
+			end
+
+			if IsControlJustPressed(0, Config.ExitControl) then
+				DisableFreeCam()
 			end
 
 			-- Toggle HUD

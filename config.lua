@@ -15,7 +15,6 @@ Config.RollLeftControl      = 0x9959A6F0 -- C
 Config.RollRightControl     = 0x7F8D09B8 -- V
 Config.ToggleHudControl     = 0xDE794E3E -- Q
 Config.ResetCamControl      = 0x4CC0E2FE -- B
-Config.ExitControl          = 0x308588E6 -- Backspace
 
 -- Maximum movement speed
 Config.MaxSpeed = 1.00

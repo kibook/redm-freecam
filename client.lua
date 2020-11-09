@@ -2,16 +2,8 @@ local Cam = nil
 local StartingFov = 0.0
 local ShowHud = true
 local Speed = Config.Speed
-local ClearTasks = false
 
 function EnableFreeCam()
-	if not IsPedUsingAnyScenario(PlayerPedId()) then
-		TaskStandStill(PlayerPedId(), -1)
-		ClearTasks = true
-	else
-		ClearTasks = false
-	end
-
 	local x, y, z = table.unpack(GetGameplayCamCoord())
 	local pitch, roll, yaw = table.unpack(GetGameplayCamRot(2))
 	local fov = GetGameplayCamFov()
@@ -24,10 +16,6 @@ function EnableFreeCam()
 end
 
 function DisableFreeCam()
-	if ClearTasks then
-		ClearPedTasks(PlayerPedId(), true, true)
-	end
-
 	RenderScriptCams(false, true, 500, true, true)
 	SetCamActive(Cam, false)
 	DetachCam(Cam)
@@ -67,6 +55,10 @@ CreateThread(function()
 		Wait(0)
 
 		if Cam then
+			-- Disable all controls except a few while in freecam mode
+			DisableAllControlActions(0)
+			EnableControlAction(0, 0x9720fcee) -- MpTextChatAll
+
 			local x, y, z = table.unpack(GetCamCoord(Cam))
 			local pitch, roll, yaw = table.unpack(GetCamRot(Cam, 2))
 			local fov = GetCamFov(Cam)
@@ -91,43 +83,39 @@ CreateThread(function()
 			if ShowHud then
 				DrawText(string.format('FreeCam Speed: %.2f', Speed), 0.5, 0.90, true)
 				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f', x, y, z, pitch, roll, yaw, fov), 0.01, 0.3, false)
-				DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD, Backspace - Exit', 0.5, 0.95, true)
+				DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.95, true)
 			else
 				HideHudAndRadarThisFrame()
 			end
 
-			if IsControlJustPressed(0, Config.ExitControl) then
-				DisableFreeCam()
-			end
-
 			-- Toggle HUD
-			if IsControlJustPressed(0, Config.ToggleHudControl) then
+			if IsDisabledControlJustPressed(0, Config.ToggleHudControl) then
 				ShowHud = not ShowHud
 			end
 
 			-- Reset camera
-			if IsControlJustPressed(0, Config.ResetCamControl) then
+			if IsDisabledControlJustPressed(0, Config.ResetCamControl) then
 				roll = 0.0
 				fov = StartingFov
 			end
 
 			-- Increase movement speed
-			if IsControlPressed(0, Config.IncreaseSpeedControl) then
+			if IsDisabledControlPressed(0, Config.IncreaseSpeedControl) then
 				Speed = Speed + Config.SpeedIncrement
 			end
 
 			-- Decrease movement speed
-			if IsControlPressed(0, Config.DecreaseSpeedControl) then
+			if IsDisabledControlPressed(0, Config.DecreaseSpeedControl) then
 				Speed = Speed - Config.SpeedIncrement
 			end
 
 			-- Move up
-			if IsControlPressed(0, Config.UpControl) then
+			if IsDisabledControlPressed(0, Config.UpControl) then
 				z = z + Speed
 			end
 
 			-- Move down
-			if IsControlPressed(0, Config.DownControl) then
+			if IsDisabledControlPressed(0, Config.DownControl) then
 				z = z - Speed
 			end
 
@@ -141,12 +129,12 @@ CreateThread(function()
 			end
 
 			-- Roll left
-			if IsControlPressed(0, Config.RollLeftControl) then
+			if IsDisabledControlPressed(0, Config.RollLeftControl) then
 				roll = roll - Config.RollSpeed
 			end
 
 			-- Roll right
-			if IsControlPressed(0, Config.RollRightControl) then
+			if IsDisabledControlPressed(0, Config.RollRightControl) then
 				roll = roll + Config.RollSpeed
 			end
 
@@ -161,36 +149,36 @@ CreateThread(function()
 			local dy2 = Speed * math.cos(r2)
 
 			-- Move forward
-			if IsControlPressed(0, Config.ForwardControl) then
+			if IsDisabledControlPressed(0, Config.ForwardControl) then
 				x = x + dx1
 				y = y + dy1
 			end
 
 			-- Move backward
-			if IsControlPressed(0, Config.BackwardControl) then
+			if IsDisabledControlPressed(0, Config.BackwardControl) then
 				x = x - dx1
 				y = y - dy1
 			end
 
 			-- Move left
-			if IsControlPressed(0, Config.LeftControl) then
+			if IsDisabledControlPressed(0, Config.LeftControl) then
 				x = x + dx2
 				y = y + dy2
 			end
 
 			-- Move right
-			if IsControlPressed(0, Config.RightControl) then
+			if IsDisabledControlPressed(0, Config.RightControl) then
 				x = x - dx2
 				y = y - dy2
 			end
 
 			-- Increase FOV
-			if IsControlPressed(0, Config.IncreaseFovControl) then
+			if IsDisabledControlPressed(0, Config.IncreaseFovControl) then
 				fov = fov + Config.ZoomSpeed
 			end
 
 			-- Decrease FOV
-			if IsControlPressed(0, Config.DecreaseFovControl) then
+			if IsDisabledControlPressed(0, Config.DecreaseFovControl) then
 				fov = fov - Config.ZoomSpeed
 			end
 

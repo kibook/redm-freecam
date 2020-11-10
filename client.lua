@@ -57,6 +57,7 @@ CreateThread(function()
 		if Cam then
 			-- Disable all controls except a few while in freecam mode
 			DisableAllControlActions(0)
+			EnableControlAction(0, 0x4A903C11) -- FrontendPauseAlternate
 			EnableControlAction(0, 0x9720fcee) -- MpTextChatAll
 
 			local x, y, z = table.unpack(GetCamCoord(Cam))

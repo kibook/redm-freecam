@@ -3,6 +3,8 @@ local StartingFov = 0.0
 local ShowHud = true
 local Speed = Config.Speed
 
+RegisterNetEvent('freecam:toggle')
+
 function EnableFreeCam()
 	local x, y, z = table.unpack(GetGameplayCamCoord())
 	local pitch, roll, yaw = table.unpack(GetGameplayCamRot(2))
@@ -32,6 +34,8 @@ function ToggleFreeCam()
 end
 
 RegisterCommand('freecam', ToggleFreeCam)
+
+AddEventHandler('freecam:toggle', ToggleFreeCam)
 
 function DrawText(text, x, y, centred)
 	SetTextScale(0.35, 0.35)

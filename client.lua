@@ -4,6 +4,8 @@ local StartingFov = 0.0
 local ShowHud = true
 local Speed = Config.Speed
 local CameraLocked = false
+local Timecycle = 1
+local FilterEnabled = false
 
 RegisterNetEvent('freecam:toggle')
 RegisterNetEvent('freecam:toggleLock')
@@ -43,6 +45,10 @@ function EnableFreeCam()
 	StartingFov = fov
 
 	AttachCamToEntity(Cam, Controller, 0.0, 0.0, 0.0, true)
+
+	if FilterEnabled then
+		SetTimecycleModifier(Timecycles[Timecycle])
+	end
 end
 
 function DisableFreeCam()
@@ -51,7 +57,12 @@ function DisableFreeCam()
 	DetachCam(Cam)
 	DestroyCam(Cam, true)
 	Cam = nil
+
 	DeleteObject(Controller)
+
+	if FilterEnabled then
+		ClearTimecycleModifier()
+	end
 end
 
 function ToggleFreeCam()
@@ -64,6 +75,28 @@ end
 
 function ToggleFreeCamLock()
 	CameraLocked = not CameraLocked
+end
+
+function NextFilter()
+	Timecycle = Timecycle == #Timecycles and 1 or Timecycle + 1
+	SetTimecycleModifier(Timecycles[Timecycle])
+	FilterEnabled = true
+end
+
+function PrevFilter()
+	Timecycle = Timecycle == 1 and #Timecycles or Timecycle - 1
+	SetTimecycleModifier(Timecycles[Timecycle])
+	FilterEnabled = true
+end
+
+function ToggleFilter()
+	if FilterEnabled then
+		ClearTimecycleModifier()
+		FilterEnabled = false
+	else
+		SetTimecycleModifier(Timecycles[Timecycle])
+		FilterEnabled = true
+	end
 end
 
 RegisterCommand('freecam', ToggleFreeCam)
@@ -102,11 +135,11 @@ CreateThread(function()
 
 			-- Show controls or hide HUD
 			if ShowHud then
-				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f', x, y, z, pitch, roll, yaw, fov), 0.01, 0.3, false)
+				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f\nFilter: %s', x, y, z, pitch, roll, yaw, fov, FilterEnabled and Timecycles[Timecycle] or 'None'), 0.01, 0.3, false)
 
 				if not CameraLocked then
 					DrawText(string.format('FreeCam Speed: %.3f', Speed), 0.5, 0.90, true)
-					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.95, true)
+					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD, F/G - Cycle Filter, H - Toggle Filter', 0.5, 0.95, true)
 				end
 			else
 				HideHudAndRadarThisFrame()
@@ -226,6 +259,21 @@ CreateThread(function()
 				-- Decrease FOV
 				if IsDisabledControlPressed(0, Config.DecreaseFovControl) then
 					fov = fov - Config.ZoomSpeed
+				end
+
+				-- Next filter
+				if IsDisabledControlJustPressed(0, Config.NextFilterControl) then
+					NextFilter()
+				end
+
+				-- Previous filter
+				if IsDisabledControlJustPressed(0, Config.PrevFilterControl) then
+					PrevFilter()
+				end
+
+				-- Reset filter
+				if IsDisabledControlJustPressed(0, Config.ToggleFilterControl) then
+					ToggleFilter()
 				end
 
 				SetEntityCoordsNoOffset(Controller, x, y, z)

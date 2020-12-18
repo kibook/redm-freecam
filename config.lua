@@ -15,6 +15,9 @@ Config.RollLeftControl      = 0x9959A6F0 -- C
 Config.RollRightControl     = 0x7F8D09B8 -- V
 Config.ToggleHudControl     = 0xDE794E3E -- Q
 Config.ResetCamControl      = 0x4CC0E2FE -- B
+Config.PrevFilterControl    = 0x3B24C470 -- F
+Config.NextFilterControl    = 0x760A9C6F -- G
+Config.ToggleFilterControl  = 0x24978A28 -- H
 
 -- Maximum movement speed
 Config.MaxSpeed = 1.00

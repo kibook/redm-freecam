@@ -20,10 +20,10 @@ Config.ResetCamControl      = 0x4CC0E2FE -- B
 Config.MaxSpeed = 1.00
 
 -- Minimum movement speed
-Config.MinSpeed = 0.01
+Config.MinSpeed = 0.001
 
 -- How much the speed increases/decreases by when the speed up/down controls are pressed
-Config.SpeedIncrement = 0.01
+Config.SpeedIncrement = 0.001
 
 -- Default movement speed
 Config.Speed = 0.05
@@ -45,3 +45,6 @@ Config.SpeedUd = 8.0
 
 -- Camera roll speed
 Config.RollSpeed = 1.0
+
+-- Model for the dummy object that controls the camera movement
+Config.ControllerModel = `scriptedball`

@@ -1,20 +1,48 @@
 local Cam = nil
+local Controller = nil
 local StartingFov = 0.0
 local ShowHud = true
 local Speed = Config.Speed
+local CameraLocked = false
 
 RegisterNetEvent('freecam:toggle')
+RegisterNetEvent('freecam:toggleLock')
+
+function LoadModel(model)
+	if IsModelInCdimage(model) then
+		RequestModel(model)
+
+		while not HasModelLoaded(model) do
+			Wait(0)
+		end
+
+		return true
+	else
+		return false
+	end
+end
 
 function EnableFreeCam()
 	local x, y, z = table.unpack(GetGameplayCamCoord())
 	local pitch, roll, yaw = table.unpack(GetGameplayCamRot(2))
 	local fov = GetGameplayCamFov()
+
+	-- Moving the camera with SetCamCoord/SetCamRot disables the game's
+	-- anti-aliasing while the camera is moving. Attaching the camera to an
+	-- entity and moving that entity instead functions as a workaround for
+	-- positioning (but not rotating) the camera.
+	LoadModel(Config.ControllerModel)
+	Controller = CreateObjectNoOffset(Config.ControllerModel, x, y, z, false, false, false, false)
+	FreezeEntityPosition(Controller, true)
+	SetEntityVisible(Controller, false)
+
 	Cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
-	SetCamCoord(Cam, x, y, z)
 	SetCamRot(Cam, pitch, roll, yaw, 2)
 	SetCamFov(Cam, fov)
 	RenderScriptCams(true, true, 500, true, true)
 	StartingFov = fov
+
+	AttachCamToEntity(Cam, Controller, 0.0, 0.0, 0.0, true)
 end
 
 function DisableFreeCam()
@@ -23,6 +51,7 @@ function DisableFreeCam()
 	DetachCam(Cam)
 	DestroyCam(Cam, true)
 	Cam = nil
+	DeleteObject(Controller)
 end
 
 function ToggleFreeCam()
@@ -33,9 +62,15 @@ function ToggleFreeCam()
 	end
 end
 
+function ToggleFreeCamLock()
+	CameraLocked = not CameraLocked
+end
+
 RegisterCommand('freecam', ToggleFreeCam)
+RegisterCommand('freecamLock', ToggleFreeCamLock)
 
 AddEventHandler('freecam:toggle', ToggleFreeCam)
+AddEventHandler('freecam:toggleLock', ToggleFreeCamLock)
 
 function DrawText(text, x, y, centred)
 	SetTextScale(0.35, 0.35)
@@ -55,141 +90,148 @@ end)
 CreateThread(function()
 	TriggerEvent('chat:addSuggestion', '/freecam', 'Toggle freecam mode', {})
 
+	TriggerEvent('chat:addSuggestion', '/freecamLock', 'Lock/unlock the freecam', {})
+
 	while true do
 		Wait(0)
 
 		if Cam then
-			-- Disable all controls except a few while in freecam mode
-			DisableAllControlActions(0)
-			EnableControlAction(0, 0x4A903C11) -- FrontendPauseAlternate
-			EnableControlAction(0, 0x9720fcee) -- MpTextChatAll
-
 			local x, y, z = table.unpack(GetCamCoord(Cam))
 			local pitch, roll, yaw = table.unpack(GetCamRot(Cam, 2))
 			local fov = GetCamFov(Cam)
 
-			-- Ensure speed is within the specified range
-			if Speed < Config.MinSpeed then
-				Speed = Config.MinSpeed
-			end
-			if Speed > Config.MaxSpeed then
-				Speed = Config.MaxSpeed
-			end
-
-			-- Ensure FOV is within the specified range
-			if fov < Config.MinFov then
-				fov = Config.MinFov
-			end
-			if fov > Config.MaxFov then
-				fov = Config.MaxFov
-			end
-
 			-- Show controls or hide HUD
 			if ShowHud then
-				DrawText(string.format('FreeCam Speed: %.2f', Speed), 0.5, 0.90, true)
 				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f', x, y, z, pitch, roll, yaw, fov), 0.01, 0.3, false)
-				DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.95, true)
+
+				if not CameraLocked then
+					DrawText(string.format('FreeCam Speed: %.3f', Speed), 0.5, 0.90, true)
+					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.95, true)
+				end
 			else
 				HideHudAndRadarThisFrame()
 			end
 
-			-- Toggle HUD
-			if IsDisabledControlJustPressed(0, Config.ToggleHudControl) then
-				ShowHud = not ShowHud
+			if not CameraLocked then
+				-- Disable all controls except a few while in freecam mode
+				DisableAllControlActions(0)
+				EnableControlAction(0, 0x4A903C11) -- FrontendPauseAlternate
+				EnableControlAction(0, 0x9720fcee) -- MpTextChatAll
+
+				-- Ensure speed is within the specified range
+				if Speed < Config.MinSpeed then
+					Speed = Config.MinSpeed
+				end
+				if Speed > Config.MaxSpeed then
+					Speed = Config.MaxSpeed
+				end
+
+				-- Ensure FOV is within the specified range
+				if fov < Config.MinFov then
+					fov = Config.MinFov
+				end
+				if fov > Config.MaxFov then
+					fov = Config.MaxFov
+				end
+
+				-- Toggle HUD
+				if IsDisabledControlJustPressed(0, Config.ToggleHudControl) then
+					ShowHud = not ShowHud
+				end
+
+				-- Reset camera
+				if IsDisabledControlJustPressed(0, Config.ResetCamControl) then
+					roll = 0.0
+					fov = StartingFov
+				end
+
+				-- Increase movement speed
+				if IsDisabledControlPressed(0, Config.IncreaseSpeedControl) then
+					Speed = Speed + Config.SpeedIncrement
+				end
+
+				-- Decrease movement speed
+				if IsDisabledControlPressed(0, Config.DecreaseSpeedControl) then
+					Speed = Speed - Config.SpeedIncrement
+				end
+
+				-- Move up
+				if IsDisabledControlPressed(0, Config.UpControl) then
+					z = z + Speed
+				end
+
+				-- Move down
+				if IsDisabledControlPressed(0, Config.DownControl) then
+					z = z - Speed
+				end
+
+				-- Rotate camera using the mouse/analog stick
+				local axisX = GetDisabledControlNormal(0, 0xA987235F)
+				local axisY = GetDisabledControlNormal(0, 0xD2047988)
+
+				if axisX ~= 0.0 or axisY ~= 0.0 then
+					yaw = yaw + axisX * -1.0 * Config.SpeedUd * 1.0
+					pitch = math.max(math.min(89.9, pitch + axisY * -1.0 * Config.SpeedLr * 1.0), -89.9)
+				end
+
+				-- Roll left
+				if IsDisabledControlPressed(0, Config.RollLeftControl) then
+					roll = roll - Config.RollSpeed
+				end
+
+				-- Roll right
+				if IsDisabledControlPressed(0, Config.RollRightControl) then
+					roll = roll + Config.RollSpeed
+				end
+
+				-- Determine change in forward/backward movement
+				local r1 = -yaw * math.pi / 180
+				local dx1 = Speed * math.sin(r1)
+				local dy1 = Speed * math.cos(r1)
+
+				-- Determine change in left/right movement
+				local r2 = math.floor(yaw + 90.0) % 360 * -1.0 * math.pi / 180
+				local dx2 = Speed * math.sin(r2)
+				local dy2 = Speed * math.cos(r2)
+
+				-- Move forward
+				if IsDisabledControlPressed(0, Config.ForwardControl) then
+					x = x + dx1
+					y = y + dy1
+				end
+
+				-- Move backward
+				if IsDisabledControlPressed(0, Config.BackwardControl) then
+					x = x - dx1
+					y = y - dy1
+				end
+
+				-- Move left
+				if IsDisabledControlPressed(0, Config.LeftControl) then
+					x = x + dx2
+					y = y + dy2
+				end
+
+				-- Move right
+				if IsDisabledControlPressed(0, Config.RightControl) then
+					x = x - dx2
+					y = y - dy2
+				end
+
+				-- Increase FOV
+				if IsDisabledControlPressed(0, Config.IncreaseFovControl) then
+					fov = fov + Config.ZoomSpeed
+				end
+
+				-- Decrease FOV
+				if IsDisabledControlPressed(0, Config.DecreaseFovControl) then
+					fov = fov - Config.ZoomSpeed
+				end
+
+				SetEntityCoordsNoOffset(Controller, x, y, z)
+				SetCamRot(Cam, pitch, roll, yaw, 2)
+				SetCamFov(Cam, fov)
 			end
-
-			-- Reset camera
-			if IsDisabledControlJustPressed(0, Config.ResetCamControl) then
-				roll = 0.0
-				fov = StartingFov
-			end
-
-			-- Increase movement speed
-			if IsDisabledControlPressed(0, Config.IncreaseSpeedControl) then
-				Speed = Speed + Config.SpeedIncrement
-			end
-
-			-- Decrease movement speed
-			if IsDisabledControlPressed(0, Config.DecreaseSpeedControl) then
-				Speed = Speed - Config.SpeedIncrement
-			end
-
-			-- Move up
-			if IsDisabledControlPressed(0, Config.UpControl) then
-				z = z + Speed
-			end
-
-			-- Move down
-			if IsDisabledControlPressed(0, Config.DownControl) then
-				z = z - Speed
-			end
-
-			-- Rotate camera using the mouse/analog stick
-			local axisX = GetDisabledControlNormal(0, 0xA987235F)
-			local axisY = GetDisabledControlNormal(0, 0xD2047988)
-
-			if axisX ~= 0.0 or axisY ~= 0.0 then
-				yaw = yaw + axisX * -1.0 * Config.SpeedUd * 1.0
-				pitch = math.max(math.min(89.9, pitch + axisY * -1.0 * Config.SpeedLr * 1.0), -89.9)
-			end
-
-			-- Roll left
-			if IsDisabledControlPressed(0, Config.RollLeftControl) then
-				roll = roll - Config.RollSpeed
-			end
-
-			-- Roll right
-			if IsDisabledControlPressed(0, Config.RollRightControl) then
-				roll = roll + Config.RollSpeed
-			end
-
-			-- Determine change in forward/backward movement
-			local r1 = -yaw * math.pi / 180
-			local dx1 = Speed * math.sin(r1)
-			local dy1 = Speed * math.cos(r1)
-
-			-- Determine change in left/right movement
-			local r2 = math.floor(yaw + 90.0) % 360 * -1.0 * math.pi / 180
-			local dx2 = Speed * math.sin(r2)
-			local dy2 = Speed * math.cos(r2)
-
-			-- Move forward
-			if IsDisabledControlPressed(0, Config.ForwardControl) then
-				x = x + dx1
-				y = y + dy1
-			end
-
-			-- Move backward
-			if IsDisabledControlPressed(0, Config.BackwardControl) then
-				x = x - dx1
-				y = y - dy1
-			end
-
-			-- Move left
-			if IsDisabledControlPressed(0, Config.LeftControl) then
-				x = x + dx2
-				y = y + dy2
-			end
-
-			-- Move right
-			if IsDisabledControlPressed(0, Config.RightControl) then
-				x = x - dx2
-				y = y - dy2
-			end
-
-			-- Increase FOV
-			if IsDisabledControlPressed(0, Config.IncreaseFovControl) then
-				fov = fov + Config.ZoomSpeed
-			end
-
-			-- Decrease FOV
-			if IsDisabledControlPressed(0, Config.DecreaseFovControl) then
-				fov = fov - Config.ZoomSpeed
-			end
-
-			SetCamCoord(Cam, x, y, z)
-			SetCamRot(Cam, pitch, roll, yaw)
-			SetCamFov(Cam, fov)
 		end
 	end
 end)

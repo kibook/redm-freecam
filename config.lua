@@ -18,6 +18,7 @@ Config.ResetCamControl      = 0x4CC0E2FE -- B
 Config.PrevFilterControl    = 0x3B24C470 -- F
 Config.NextFilterControl    = 0x760A9C6F -- G
 Config.ToggleFilterControl  = 0x24978A28 -- H
+Config.ToggleGridControl    = 0xF3830D8E -- J
 
 -- Maximum movement speed
 Config.MaxSpeed = 1.00

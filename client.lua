@@ -6,6 +6,7 @@ local Speed = Config.Speed
 local CameraLocked = false
 local Timecycle = 1
 local FilterEnabled = false
+local GridEnabled = false
 
 RegisterNetEvent('freecam:toggle')
 RegisterNetEvent('freecam:toggleLock')
@@ -99,6 +100,16 @@ function ToggleFilter()
 	end
 end
 
+function ToggleGrid()
+	if GridEnabled then
+		AnimpostfxStop('CameraViewFinder')
+		GridEnabled = false
+	else
+		AnimpostfxPlay('CameraViewFinder')
+		GridEnabled = true
+	end
+end
+
 RegisterCommand('freecam', ToggleFreeCam)
 RegisterCommand('freecamLock', ToggleFreeCamLock)
 
@@ -139,7 +150,8 @@ CreateThread(function()
 
 				if not CameraLocked then
 					DrawText(string.format('FreeCam Speed: %.3f', Speed), 0.5, 0.90, true)
-					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD, F/G - Cycle Filter, H - Toggle Filter', 0.5, 0.95, true)
+					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.93, true)
+					DrawText('F/G - Cycle Filter, H - Toggle Filter, J - Toggle Grid', 0.5, 0.96, true)
 				end
 			else
 				HideHudAndRadarThisFrame()
@@ -274,6 +286,11 @@ CreateThread(function()
 				-- Reset filter
 				if IsDisabledControlJustPressed(0, Config.ToggleFilterControl) then
 					ToggleFilter()
+				end
+
+				-- Toggle grid
+				if IsDisabledControlJustPressed(0, Config.ToggleGridControl) then
+					ToggleGrid()
 				end
 
 				SetEntityCoordsNoOffset(Controller, x, y, z)

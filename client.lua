@@ -110,6 +110,20 @@ function ToggleGrid()
 	end
 end
 
+function CheckControls(func, pad, controls)
+	if type(controls) == 'number' then
+		return func(pad, controls)
+	end
+
+	for _, control in ipairs(controls) do
+		if func(pad, control) then
+			return true
+		end
+	end
+
+	return false
+end
+
 RegisterCommand('freecam', ToggleFreeCam)
 RegisterCommand('freecamLock', ToggleFreeCamLock)
 
@@ -180,33 +194,33 @@ CreateThread(function()
 				end
 
 				-- Toggle HUD
-				if IsDisabledControlJustPressed(0, Config.ToggleHudControl) then
+				if CheckControls(IsDisabledControlJustPressed, 0, Config.ToggleHudControl) then
 					ShowHud = not ShowHud
 				end
 
 				-- Reset camera
-				if IsDisabledControlJustPressed(0, Config.ResetCamControl) then
+				if CheckControls(IsDisabledControlJustPressed, 0, Config.ResetCamControl) then
 					roll = 0.0
 					fov = StartingFov
 				end
 
 				-- Increase movement speed
-				if IsDisabledControlPressed(0, Config.IncreaseSpeedControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.IncreaseSpeedControl) then
 					Speed = Speed + Config.SpeedIncrement
 				end
 
 				-- Decrease movement speed
-				if IsDisabledControlPressed(0, Config.DecreaseSpeedControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.DecreaseSpeedControl) then
 					Speed = Speed - Config.SpeedIncrement
 				end
 
 				-- Move up
-				if IsDisabledControlPressed(0, Config.UpControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.UpControl) then
 					z = z + Speed
 				end
 
 				-- Move down
-				if IsDisabledControlPressed(0, Config.DownControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.DownControl) then
 					z = z - Speed
 				end
 
@@ -220,12 +234,12 @@ CreateThread(function()
 				end
 
 				-- Roll left
-				if IsDisabledControlPressed(0, Config.RollLeftControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.RollLeftControl) then
 					roll = roll - Config.RollSpeed
 				end
 
 				-- Roll right
-				if IsDisabledControlPressed(0, Config.RollRightControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.RollRightControl) then
 					roll = roll + Config.RollSpeed
 				end
 
@@ -240,56 +254,56 @@ CreateThread(function()
 				local dy2 = Speed * math.cos(r2)
 
 				-- Move forward
-				if IsDisabledControlPressed(0, Config.ForwardControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.ForwardControl) then
 					x = x + dx1
 					y = y + dy1
 				end
 
 				-- Move backward
-				if IsDisabledControlPressed(0, Config.BackwardControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.BackwardControl) then
 					x = x - dx1
 					y = y - dy1
 				end
 
 				-- Move left
-				if IsDisabledControlPressed(0, Config.LeftControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.LeftControl) then
 					x = x + dx2
 					y = y + dy2
 				end
 
 				-- Move right
-				if IsDisabledControlPressed(0, Config.RightControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.RightControl) then
 					x = x - dx2
 					y = y - dy2
 				end
 
 				-- Increase FOV
-				if IsDisabledControlPressed(0, Config.IncreaseFovControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.IncreaseFovControl) then
 					fov = fov + Config.ZoomSpeed
 				end
 
 				-- Decrease FOV
-				if IsDisabledControlPressed(0, Config.DecreaseFovControl) then
+				if CheckControls(IsDisabledControlPressed, 0, Config.DecreaseFovControl) then
 					fov = fov - Config.ZoomSpeed
 				end
 
 				-- Next filter
-				if IsDisabledControlJustPressed(0, Config.NextFilterControl) then
+				if CheckControls(IsDisabledControlJustPressed, 0, Config.NextFilterControl) then
 					NextFilter()
 				end
 
 				-- Previous filter
-				if IsDisabledControlJustPressed(0, Config.PrevFilterControl) then
+				if CheckControls(IsDisabledControlJustPressed, 0, Config.PrevFilterControl) then
 					PrevFilter()
 				end
 
 				-- Reset filter
-				if IsDisabledControlJustPressed(0, Config.ToggleFilterControl) then
+				if CheckControls(IsDisabledControlJustPressed, 0, Config.ToggleFilterControl) then
 					ToggleFilter()
 				end
 
 				-- Toggle grid
-				if IsDisabledControlJustPressed(0, Config.ToggleGridControl) then
+				if CheckControls(IsDisabledControlJustPressed, 0, Config.ToggleGridControl) then
 					ToggleGrid()
 				end
 

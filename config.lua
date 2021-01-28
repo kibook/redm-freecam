@@ -1,24 +1,24 @@
 Config = {}
 
 -- Configurable controls
-Config.IncreaseSpeedControl = 0x446258B6 -- Page Up
-Config.DecreaseSpeedControl = 0x3C3DD371 -- Page Down
-Config.UpControl            = 0xD9D0E1C0 -- Spacebar
-Config.DownControl          = 0x8FFC75D6 -- Shift
-Config.ForwardControl       = 0x8FD015D8 -- W
-Config.BackwardControl      = 0xD27782E3 -- S
-Config.LeftControl          = 0x7065027D -- A
-Config.RightControl         = 0xB4E465B4 -- D
-Config.IncreaseFovControl   = 0x8CC9CD42 -- Z
-Config.DecreaseFovControl   = 0x26E9DC00 -- X
-Config.RollLeftControl      = 0x9959A6F0 -- C
-Config.RollRightControl     = 0x7F8D09B8 -- V
-Config.ToggleHudControl     = 0xDE794E3E -- Q
-Config.ResetCamControl      = 0x4CC0E2FE -- B
-Config.PrevFilterControl    = 0x3B24C470 -- F
-Config.NextFilterControl    = 0x760A9C6F -- G
-Config.ToggleFilterControl  = 0x24978A28 -- H
-Config.ToggleGridControl    = 0xF3830D8E -- J
+Config.IncreaseSpeedControl = {`INPUT_CREATOR_LT`, `INPUT_PREV_WEAPON`} -- Page Up, Mouse Wheel Up
+Config.DecreaseSpeedControl = {`INPUT_CREATOR_RT`, `INPUT_NEXT_WEAPON`} -- Page Down, Mouse Wheel Down
+Config.UpControl            = `INPUT_JUMP`                              -- Spacebar
+Config.DownControl          = `INPUT_SPRINT`                            -- Shift
+Config.ForwardControl       = `INPUT_MOVE_UP_ONLY`                      -- W
+Config.BackwardControl      = `INPUT_MOVE_DOWN_ONLY`                    -- S
+Config.LeftControl          = `INPUT_MOVE_LEFT_ONLY`                    -- A
+Config.RightControl         = `INPUT_MOVE_RIGHT_ONLY`                   -- D
+Config.IncreaseFovControl   = `INPUT_GAME_MENU_TAB_RIGHT_SECONDARY`     -- Z
+Config.DecreaseFovControl   = `INPUT_GAME_MENU_TAB_LEFT_SECONDARY`      -- X
+Config.RollLeftControl      = `INPUT_LOOK_BEHIND`                       -- C
+Config.RollRightControl     = `INPUT_NEXT_CAMERA`                       -- V
+Config.ToggleHudControl     = `INPUT_COVER`                             -- Q
+Config.ResetCamControl      = `INPUT_OPEN_SATCHEL_MENU`                 -- B
+Config.PrevFilterControl    = `INPUT_CONTEXT_B`                         -- F
+Config.NextFilterControl    = `INPUT_INTERACT_OPTION1`                  -- G
+Config.ToggleFilterControl  = `INPUT_WHISTLE`                           -- H
+Config.ToggleGridControl    = `INPUT_OPEN_JOURNAL`                      -- J
 
 -- Maximum movement speed
 Config.MaxSpeed = 1.00

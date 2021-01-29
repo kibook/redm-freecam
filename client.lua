@@ -50,6 +50,10 @@ function EnableFreeCam()
 	if FilterEnabled then
 		SetTimecycleModifier(Timecycles[Timecycle])
 	end
+
+	if GridEnabled then
+		AnimpostfxPlay("CameraViewFinder")
+	end
 end
 
 function DisableFreeCam()
@@ -63,6 +67,10 @@ function DisableFreeCam()
 
 	if FilterEnabled then
 		ClearTimecycleModifier()
+	end
+
+	if GridEnabled then
+		AnimpostfxStop("CameraViewFinder")
 	end
 end
 

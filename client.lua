@@ -84,6 +84,10 @@ end
 
 function ToggleFreeCamLock()
 	CameraLocked = not CameraLocked
+
+	if not Cam then
+		EnableFreeCam()
+	end
 end
 
 function NextFilter()
@@ -133,7 +137,7 @@ function CheckControls(func, pad, controls)
 end
 
 RegisterCommand('freecam', ToggleFreeCam)
-RegisterCommand('freecamLock', ToggleFreeCamLock)
+RegisterCommand('lockcam', ToggleFreeCamLock)
 
 AddEventHandler('freecam:toggle', ToggleFreeCam)
 AddEventHandler('freecam:toggleLock', ToggleFreeCamLock)
@@ -156,7 +160,7 @@ end)
 CreateThread(function()
 	TriggerEvent('chat:addSuggestion', '/freecam', 'Toggle freecam mode', {})
 
-	TriggerEvent('chat:addSuggestion', '/freecamLock', 'Lock/unlock the freecam', {})
+	TriggerEvent('chat:addSuggestion', '/lockcam', 'Lock/unlock the freecam', {})
 
 	while true do
 		Wait(0)

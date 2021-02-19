@@ -7,9 +7,11 @@ local CameraLocked = false
 local Timecycle = 1
 local FilterEnabled = false
 local GridEnabled = false
+local AttachedCamEntity = nil
 
 RegisterNetEvent('freecam:toggle')
 RegisterNetEvent('freecam:toggleLock')
+RegisterNetEvent('freecam:toggleAttached')
 
 function LoadModel(model)
 	if IsModelInCdimage(model) then
@@ -23,6 +25,22 @@ function LoadModel(model)
 	else
 		return false
 	end
+end
+
+function AttachCam(entity)
+	local entPos = GetEntityCoords(entity)
+	local camPos
+
+	if Cam then
+		camPos = GetCamCoord(Cam)
+	else
+		camPos = GetGameplayCamCoord()
+
+		EnableFreeCam()
+	end
+
+	AttachCamToEntity(Cam, entity, camPos - entPos, false)
+	AttachedCamEntity = entity
 end
 
 function EnableFreeCam()
@@ -65,6 +83,8 @@ function DisableFreeCam()
 
 	DeleteObject(Controller)
 
+	AttachedCamEntity = nil
+
 	if FilterEnabled then
 		ClearTimecycleModifier()
 	end
@@ -83,11 +103,11 @@ function ToggleFreeCam()
 end
 
 function ToggleFreeCamLock()
-	CameraLocked = not CameraLocked
-
 	if not Cam then
 		EnableFreeCam()
 	end
+
+	CameraLocked = not CameraLocked
 end
 
 function NextFilter()
@@ -122,6 +142,15 @@ function ToggleGrid()
 	end
 end
 
+function ToggleAttachedCam()
+	if AttachedCamEntity then
+		AttachCamToEntity(Cam, Controller, 0.0, 0.0, 0.0, true)
+		AttachedCamEntity = nil
+	else
+		AttachCam(PlayerPedId())
+	end
+end
+
 function CheckControls(func, pad, controls)
 	if type(controls) == 'number' then
 		return func(pad, controls)
@@ -138,9 +167,11 @@ end
 
 RegisterCommand('freecam', ToggleFreeCam)
 RegisterCommand('lockcam', ToggleFreeCamLock)
+RegisterCommand('attachcam', ToggleAttachedCam)
 
 AddEventHandler('freecam:toggle', ToggleFreeCam)
 AddEventHandler('freecam:toggleLock', ToggleFreeCamLock)
+AddEventHandler('freecam:toggleAttached', ToggleAttachedCam)
 
 function DrawText(text, x, y, centred)
 	SetTextScale(0.35, 0.35)
@@ -158,9 +189,9 @@ AddEventHandler('onResourceStop', function(resourceName)
 end)
 
 CreateThread(function()
-	TriggerEvent('chat:addSuggestion', '/freecam', 'Toggle freecam mode', {})
-
-	TriggerEvent('chat:addSuggestion', '/lockcam', 'Lock/unlock the freecam', {})
+	TriggerEvent('chat:addSuggestion', '/freecam', 'Toggle freecam mode')
+	TriggerEvent('chat:addSuggestion', '/lockcam', 'Lock/unlock the freecam')
+	TriggerEvent('chat:addSuggestion', '/attachcam', 'Attach freecam in place')
 
 	while true do
 		Wait(0)
@@ -172,9 +203,18 @@ CreateThread(function()
 
 			-- Show controls or hide HUD
 			if ShowHud then
+				DrawText('Camera Mode:', 0.5, 0.01, true)
+				if CameraLocked then
+					DrawText('Locked', 0.5, 0.03, true)
+				elseif AttachedCamEntity then
+					DrawText('Attached', 0.5, 0.03, true)
+				else
+					DrawText('Free', 0.5, 0.03, true)
+				end
+
 				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f\nFilter: %s', x, y, z, pitch, roll, yaw, fov, FilterEnabled and Timecycles[Timecycle] or 'None'), 0.01, 0.3, false)
 
-				if not CameraLocked then
+				if not (CameraLocked or AttachedCamEntity) then
 					DrawText(string.format('FreeCam Speed: %.3f', Speed), 0.5, 0.90, true)
 					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.93, true)
 					DrawText('F/G - Cycle Filter, H - Toggle Filter, J - Toggle Grid', 0.5, 0.96, true)
@@ -183,7 +223,9 @@ CreateThread(function()
 				HideHudAndRadarThisFrame()
 			end
 
-			if not CameraLocked then
+			DisableFirstPersonCamThisFrame()
+
+			if not (CameraLocked or AttachedCamEntity) then
 				-- Disable all controls except a few while in freecam mode
 				DisableAllControlActions(0)
 				EnableControlAction(0, 0x4A903C11) -- FrontendPauseAlternate
@@ -324,5 +366,15 @@ CreateThread(function()
 				SetCamFov(Cam, fov)
 			end
 		end
+	end
+end)
+
+CreateThread(function()
+	while true do
+		if AttachedCamEntity and not DoesEntityExist(AttachedCamEntity) then
+			AttachCam(PlayerPedId())
+		end
+
+		Wait(500)
 	end
 end)

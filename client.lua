@@ -191,7 +191,7 @@ end)
 CreateThread(function()
 	TriggerEvent('chat:addSuggestion', '/freecam', 'Toggle freecam mode')
 	TriggerEvent('chat:addSuggestion', '/lockcam', 'Lock/unlock the freecam')
-	TriggerEvent('chat:addSuggestion', '/attachcam', 'Attach freecam in place')
+	TriggerEvent('chat:addSuggestion', '/attachcam', 'Attach/detach camera in place')
 
 	while true do
 		Wait(0)

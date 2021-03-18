@@ -144,6 +144,7 @@ end
 
 function ToggleAttachedCam()
 	if AttachedCamEntity then
+		SetEntityCoordsNoOffset(Controller, GetCamCoord(Cam))
 		AttachCamToEntity(Cam, Controller, 0.0, 0.0, 0.0, true)
 		AttachedCamEntity = nil
 	else
@@ -214,7 +215,9 @@ CreateThread(function()
 
 				DrawText(string.format('Coordinates:\nX: %.2f\nY: %.2f\nZ: %.2f\nPitch: %.2f\nRoll: %.2f\nYaw: %.2f\nFOV: %.0f\nFilter: %s', x, y, z, pitch, roll, yaw, fov, FilterEnabled and Timecycles[Timecycle] or 'None'), 0.01, 0.3, false)
 
-				if not (CameraLocked or AttachedCamEntity) then
+				if CameraLocked or AttachedCamEntity then
+					DrawText('Return to Free mode - V', 0.5, 0.96)
+				else
 					DrawText(string.format('FreeCam Speed: %.3f', Speed), 0.5, 0.90, true)
 					DrawText('W/A/S/D - Move, Spacebar/Shift - Up/Down, Page Up/Page Down - Change speed, Z/X - Zoom, C/V - Roll, B - Reset, Q - Hide HUD', 0.5, 0.93, true)
 					DrawText('F/G - Cycle Filter, H - Toggle Filter, J - Toggle Grid', 0.5, 0.96, true)
@@ -225,11 +228,21 @@ CreateThread(function()
 
 			DisableFirstPersonCamThisFrame()
 
-			if not (CameraLocked or AttachedCamEntity) then
+			if CameraLocked or AttachedCamEntity then
+				DisableControlAction(0, Config.ExitLockedCamControl, true)
+
+				if CheckControls(IsDisabledControlJustReleased, 0, Config.ExitLockedCamControl) then
+					if CameraLocked then
+						ToggleFreeCamLock()
+					else
+						ToggleAttachedCam()
+					end
+				end
+			else
 				-- Disable all controls except a few while in freecam mode
 				DisableAllControlActions(0)
-				EnableControlAction(0, 0x4A903C11) -- FrontendPauseAlternate
-				EnableControlAction(0, 0x9720fcee) -- MpTextChatAll
+				EnableControlAction(0, `INPUT_FRONTEND_PAUSE_ALTERNATE`)
+				EnableControlAction(0, `INPUT_MP_TEXT_CHAT_ALL`)
 
 				-- Ensure speed is within the specified range
 				if Speed < Config.MinSpeed then

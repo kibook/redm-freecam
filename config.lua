@@ -19,6 +19,7 @@ Config.PrevFilterControl    = `INPUT_CONTEXT_B`                            -- F
 Config.NextFilterControl    = `INPUT_INTERACT_ANIMAL`                      -- G
 Config.ToggleFilterControl  = {`INPUT_WHISTLE`, `INPUT_WHISTLE_HORSEBACK`} -- H
 Config.ToggleGridControl    = `INPUT_OPEN_JOURNAL`                         -- J
+Config.ExitLockedCamControl = `INPUT_NEXT_CAMERA`                          -- V
 
 -- Maximum movement speed
 Config.MaxSpeed = 1.00

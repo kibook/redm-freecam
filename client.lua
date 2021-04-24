@@ -8,6 +8,7 @@ local Timecycle = 1
 local FilterEnabled = false
 local GridEnabled = false
 local AttachedCamEntity = nil
+local FollowCam = false
 
 RegisterNetEvent('freecam:toggle')
 RegisterNetEvent('freecam:toggleLock')
@@ -27,7 +28,7 @@ function LoadModel(model)
 	end
 end
 
-function AttachCam(entity)
+function AttachCam(entity, followCam)
 	local entPos = GetEntityCoords(entity)
 	local camPos
 
@@ -39,8 +40,16 @@ function AttachCam(entity)
 		EnableFreeCam()
 	end
 
-	AttachCamToEntity(Cam, entity, camPos - entPos, false)
+	if followCam then
+		local y = #(camPos.xy - entPos.xy)
+		local z = camPos.z - entPos.z
+		AttachCamToEntity(Cam, entity, 0.0, -y, z, true)
+	else
+		AttachCamToEntity(Cam, entity, camPos - entPos, false)
+	end
+
 	AttachedCamEntity = entity
+	FollowCam = followCam
 end
 
 function EnableFreeCam()
@@ -142,14 +151,31 @@ function ToggleGrid()
 	end
 end
 
-function ToggleAttachedCam()
+function ToggleAttachedOrFollowCam(followCam)
 	if AttachedCamEntity then
 		SetEntityCoordsNoOffset(Controller, GetCamCoord(Cam))
 		AttachCamToEntity(Cam, Controller, 0.0, 0.0, 0.0, true)
 		AttachedCamEntity = nil
+		FollowCam = false
 	else
-		AttachCam(PlayerPedId())
+		AttachCam(PlayerPedId(), followCam)
 	end
+end
+
+function ToggleAttachedCam()
+	if FollowCam then
+		ToggleFollowCam()
+	end
+
+	ToggleAttachedOrFollowCam(false)
+end
+
+function ToggleFollowCam()
+	if AttachedCamEntity and not FollowCam then
+		ToggleAttachedCam()
+	end
+
+	ToggleAttachedOrFollowCam(true)
 end
 
 function CheckControls(func, pad, controls)
@@ -169,10 +195,12 @@ end
 RegisterCommand('freecam', ToggleFreeCam)
 RegisterCommand('lockcam', ToggleFreeCamLock)
 RegisterCommand('attachcam', ToggleAttachedCam)
+RegisterCommand('followcam', ToggleFollowCam)
 
 AddEventHandler('freecam:toggle', ToggleFreeCam)
 AddEventHandler('freecam:toggleLock', ToggleFreeCamLock)
 AddEventHandler('freecam:toggleAttached', ToggleAttachedCam)
+AddEventHandler('freecam:toggleFollow', ToggleFollowCam)
 
 function DrawText(text, x, y, centred)
 	SetTextScale(0.35, 0.35)
@@ -193,6 +221,7 @@ CreateThread(function()
 	TriggerEvent('chat:addSuggestion', '/freecam', 'Toggle freecam mode')
 	TriggerEvent('chat:addSuggestion', '/lockcam', 'Lock/unlock the freecam')
 	TriggerEvent('chat:addSuggestion', '/attachcam', 'Attach/detach camera in place')
+	TriggerEvent('chat:addSuggestion', '/followcam', 'Follow behind player ped')
 
 	while true do
 		Wait(0)
@@ -208,7 +237,11 @@ CreateThread(function()
 				if CameraLocked then
 					DrawText('Locked', 0.5, 0.03, true)
 				elseif AttachedCamEntity then
-					DrawText('Attached', 0.5, 0.03, true)
+					if FollowCam then
+						DrawText('Follow', 0.5, 0.03, true)
+					else
+						DrawText('Attached', 0.5, 0.03, true)
+					end
 				else
 					DrawText('Free', 0.5, 0.03, true)
 				end
@@ -234,9 +267,15 @@ CreateThread(function()
 				if CheckControls(IsDisabledControlJustReleased, 0, Config.ExitLockedCamControl) then
 					if CameraLocked then
 						ToggleFreeCamLock()
+					elseif FollowCam then
+						ToggleFollowCam()
 					else
 						ToggleAttachedCam()
 					end
+				end
+
+				if FollowCam then
+					SetCamRot(Cam, GetEntityRotation(AttachedCamEntity))
 				end
 			else
 				-- Disable all controls except a few while in freecam mode
@@ -385,7 +424,7 @@ end)
 CreateThread(function()
 	while true do
 		if AttachedCamEntity and not DoesEntityExist(AttachedCamEntity) then
-			AttachCam(PlayerPedId())
+			AttachCam(PlayerPedId(), FollowCam)
 		end
 
 		Wait(500)
